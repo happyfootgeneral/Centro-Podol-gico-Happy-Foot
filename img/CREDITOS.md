@@ -44,4 +44,8 @@ Todas las fotos de stock se revisaron visualmente: fotografías reales (subidas 
 | carrusel-onicomicosis-grado1.webp | peter/carrusel/onicomicosis_caso2_1200x800.jpg | Reducción de ruido, FSRCNN x2 + reducción a 1200x800, enfoque leve |
 | carrusel-onicomicosis-caso3.webp | consultorio_fotos/P1_antes_20260323.jpg + P1_despues_20260924.jpg | Recorte central 600x800 por mitad, reducción de ruido, contraste local suave, enfoque leve |
 | carrusel-onicomicosis-caso4.webp | consultorio_fotos/P2_antes_20260304.jpg + P2_despues_20261007.jpg | Ídem; se retocó una marca/rasguño en el tapiz del banco |
+| carrusel-onicomicosis-caso5.webp | consultorio_fotos/collage_caso5_original.jpg (collage antes/después enviado por Miguel, 4096x3072) | Marco y barra negra recortados; cada mitad recortada a 3:4 (600x800) manteniendo ambos dedos gordos; reducción de ruido leve, contraste local suave, enfoque leve; divisor blanco de 2px; WebP |
+| carrusel-onicomicosis-caso6.webp | consultorio_fotos/collage_caso6_original.jpg (collage antes/después enviado por Miguel, 4096x4096) | Ídem (recorte vertical centrado en los dedos gordos de ambos pies); reducción de ruido algo mayor por compresión del original |
 | servicio-hongos.webp | consultorio_fotos/P1_limpieza_post_sesion_20260323.jpg | Rotada 90° (dedos hacia arriba), 1200x903, reducción de ruido, enfoque leve |
+
+Uso en la web (v8): carrusel = grado3, caso5, caso6; la imagen de la sección #tipos usa carrusel-onicomicosis-grado1.webp (sin texto "ANTES/DESPUÉS"). caso3 y caso4 quedan en la carpeta pero ya no se usan.
