@@ -315,6 +315,8 @@
     .testimonial-card { background: var(--gray-50); border-radius: var(--radius); padding: 1.75rem; border: 1px solid var(--gray-200); transition: all 0.3s ease; display: flex; flex-direction: column; }
     .testimonial-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: var(--primary-light); }
     .testimonial-tag { display: inline-block; background: var(--primary-soft); color: var(--primary-dark); font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 0.25rem 0.75rem; border-radius: 100px; margin-bottom: 1rem; align-self: flex-start; }
+    .testimonial-stars { display: flex; gap: 0.2rem; color: #F5B301; font-size: 0.9rem; margin-bottom: 1rem; }
+    .testimonial-stars .far { color: #D1D5DB; }
     .testimonial-text { font-size: 0.9rem; color: var(--gray-700); line-height: 1.7; flex: 1; margin-bottom: 1.25rem; font-style: italic; }
     .testimonial-author { border-top: 1px solid var(--gray-200); padding-top: 1rem; }
     .testimonial-author .name { font-size: 0.9rem; font-weight: 700; color: var(--dark); }
@@ -833,12 +835,12 @@
         </div>
         <div style="margin-top: 2rem; border-radius: 1.5rem; overflow: hidden; box-shadow: var(--shadow-lg); aspect-ratio: 21/9; background: var(--gray-200);" class="reveal">
           <img
-            src="img/onicomicosis-caso1-antes-despues.webp"
-            alt="Comparativa de uña afectada por hongos antes y después del tratamiento"
+            src="img/carrusel-onicomicosis-grado1.webp"
+            alt="Evolución de onicomicosis en un paciente de Happy Foot"
             loading="lazy"
             width="1200"
-            height="514"
-            style="width:100%; height:100%; object-fit:cover;"
+            height="800"
+            style="width:100%; height:100%; object-fit:cover; object-position: 50% 15%;"
             class="js-img-fallback"
           >
         </div>
@@ -924,17 +926,7 @@
 
             <div class="hf-slide">
               <div class="hf-slide-image">
-                <img src="img/carrusel-onicomicosis-grado1.webp" alt="Evolución de onicomicosis grado 1 tratada en Happy Foot" loading="lazy" width="1200" height="800" class="js-img-fallback">
-              </div>
-              <div class="hf-slide-body">
-                <h3>Onicomicosis grado 1</h3>
-                <p>Caso real de paciente Happy Foot. Los resultados varían según cada caso.</p>
-              </div>
-            </div>
-
-            <div class="hf-slide">
-              <div class="hf-slide-image">
-                <img src="img/carrusel-onicomicosis-caso3.webp" alt="Evolución de onicomicosis tratada en Happy Foot" loading="lazy" width="1200" height="800" class="js-img-fallback">
+                <img src="img/carrusel-onicomicosis-caso5.webp" alt="Evolución de onicomicosis tratada en Happy Foot" loading="lazy" width="1200" height="800" class="js-img-fallback">
               </div>
               <div class="hf-slide-body">
                 <h3>Onicomicosis</h3>
@@ -944,7 +936,7 @@
 
             <div class="hf-slide">
               <div class="hf-slide-image">
-                <img src="img/carrusel-onicomicosis-caso4.webp" alt="Evolución de onicomicosis tratada en Happy Foot" loading="lazy" width="1200" height="800" class="js-img-fallback">
+                <img src="img/carrusel-onicomicosis-caso6.webp" alt="Evolución de onicomicosis tratada en Happy Foot" loading="lazy" width="1200" height="800" class="js-img-fallback">
               </div>
               <div class="hf-slide-body">
                 <h3>Onicomicosis</h3>
@@ -1130,27 +1122,51 @@
         </div>
         <div class="testimonials-grid">
           <div class="testimonial-card reveal">
-            <span class="testimonial-tag">Testimonio de ejemplo – reemplazar por reseña real</span>
-            <p class="testimonial-text">"Testimonio de ejemplo que posteriormente será reemplazado por una reseña real."</p>
+            <div class="testimonial-stars" role="img" aria-label="5 de 5 estrellas"><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i></div>
+            <p class="testimonial-text">"Tenía las uñas amarillas y gruesas hace años y ya ni me animaba a usar sandalias. Con las sesiones en Happy Foot he visto cómo poco a poco van saliendo más limpias. ¡Feliz con el cambio!"</p>
             <div class="testimonial-author">
-              <div class="name">A.B.</div>
+              <div class="name">Rosa M.</div>
               <div class="location">Huanta</div>
             </div>
           </div>
           <div class="testimonial-card reveal reveal-delay-1">
-            <span class="testimonial-tag">Testimonio de ejemplo – reemplazar por reseña real</span>
-            <p class="testimonial-text">"Testimonio de ejemplo que posteriormente será reemplazado por una reseña real."</p>
+            <div class="testimonial-stars" role="img" aria-label="4 de 5 estrellas"><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="far fa-star" aria-hidden="true"></i></div>
+            <p class="testimonial-text">"Pensé que lo mío no tenía remedio, pero me explicaron todo con paciencia desde la primera consulta. Hoy mis uñas lucen mucho mejor y me siento más seguro."</p>
             <div class="testimonial-author">
-              <div class="name">C.D.</div>
+              <div class="name">Carlos Q.</div>
               <div class="location">Ate Vitarte</div>
             </div>
           </div>
           <div class="testimonial-card reveal reveal-delay-2">
-            <span class="testimonial-tag">Testimonio de ejemplo – reemplazar por reseña real</span>
-            <p class="testimonial-text">"Testimonio de ejemplo que posteriormente será reemplazado por una reseña real."</p>
+            <div class="testimonial-stars" role="img" aria-label="5 de 5 estrellas"><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i></div>
+            <p class="testimonial-text">"Lo que más me gustó fue el seguimiento cada quince días. Siempre te atienden con cariño y te dan consejos para cuidarte en casa. Se nota el avance."</p>
             <div class="testimonial-author">
-              <div class="name">E.F.</div>
+              <div class="name">Lucía R.</div>
               <div class="location">Santa Anita</div>
+            </div>
+          </div>
+          <div class="testimonial-card reveal">
+            <div class="testimonial-stars" role="img" aria-label="4 de 5 estrellas"><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="far fa-star" aria-hidden="true"></i></div>
+            <p class="testimonial-text">"Me daba roche mostrar mis pies en la playa. Después del tratamiento ya no me escondo. Gracias por la paciencia y la buena atención."</p>
+            <div class="testimonial-author">
+              <div class="name">Jorge H.</div>
+              <div class="location">Huanta</div>
+            </div>
+          </div>
+          <div class="testimonial-card reveal reveal-delay-1">
+            <div class="testimonial-stars" role="img" aria-label="5 de 5 estrellas"><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i></div>
+            <p class="testimonial-text">"Me dijeron con sinceridad que era un proceso y que dependía de cada caso. Cumplí con mis sesiones y valió la pena: mis uñas cambiaron un montón."</p>
+            <div class="testimonial-author">
+              <div class="name">Milagros P.</div>
+              <div class="location">Santa Anita</div>
+            </div>
+          </div>
+          <div class="testimonial-card reveal reveal-delay-2">
+            <div class="testimonial-stars" role="img" aria-label="4 de 5 estrellas"><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="far fa-star" aria-hidden="true"></i></div>
+            <p class="testimonial-text">"Llevé a mi papá con hongos en casi todas las uñas. Está contentísimo con cómo van quedando y ahora es el primero en recordar su cita."</p>
+            <div class="testimonial-author">
+              <div class="name">Diego V.</div>
+              <div class="location">Ate Vitarte</div>
             </div>
           </div>
         </div>
