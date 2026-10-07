@@ -28,3 +28,20 @@
 | blog-evaluar-una.webp | Blog 3: por qué evaluar una uña alterada | https://pixabay.com/photos/podiatry-foot-clinic-2817973/ | lucasnavarro979 (https://pixabay.com/users/lucasnavarro979-6628465/) | Pixabay Content License |
 
 Todas las fotos de stock se revisaron visualmente: fotografías reales (subidas 2014–2021, antes de la IA generativa), sin rostros identificables.
+
+## pichari.webp
+- Fuente: "Pichari.jpg" — Wikimedia Commons, https://commons.wikimedia.org/wiki/File:Pichari.jpg
+- Autor: Ministerio de Defensa del Perú
+- Licencia: CC BY 2.0 (https://creativecommons.org/licenses/by/2.0/) — redimensionada a 1200 px y convertida a WebP.
+
+## hero-happyfoot.webp / hero-happyfoot.jpg
+- Foto propia de la clínica Happy Foot; mejorada (reducción de ruido, escalado 2x FSRCNN, enfoque y corrección de color leves).
+
+## Carrusel y servicio (fotos propias de la clínica Happy Foot, sin IA generativa)
+| Archivo | Fuente | Proceso |
+|---|---|---|
+| carrusel-onicomicosis-grado3.webp | peter/carrusel/onicomicosis_caso1_1200x800.jpg | Reducción de ruido leve, WebP |
+| carrusel-onicomicosis-grado1.webp | peter/carrusel/onicomicosis_caso2_1200x800.jpg | Reducción de ruido, FSRCNN x2 + reducción a 1200x800, enfoque leve |
+| carrusel-onicomicosis-caso3.webp | consultorio_fotos/P1_antes_20260323.jpg + P1_despues_20260924.jpg | Recorte central 600x800 por mitad, reducción de ruido, contraste local suave, enfoque leve |
+| carrusel-onicomicosis-caso4.webp | consultorio_fotos/P2_antes_20260304.jpg + P2_despues_20261007.jpg | Ídem; se retocó una marca/rasguño en el tapiz del banco |
+| servicio-hongos.webp | consultorio_fotos/P1_limpieza_post_sesion_20260323.jpg | Rotada 90° (dedos hacia arriba), 1200x903, reducción de ruido, enfoque leve |
