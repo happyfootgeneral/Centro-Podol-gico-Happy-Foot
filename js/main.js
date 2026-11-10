@@ -301,6 +301,140 @@
     });
   }
 
+  /* ===================== PARALLAX CON EL RATÓN (escritorio) ===================== */
+  (function initPointerParallax() {
+    if (prefersReduced) return;
+    var fine = window.matchMedia && window.matchMedia('(pointer: fine) and (min-width: 1024px)').matches;
+    if (!fine) return;
+    var hosts = $$('.hero.layered, .cta-band.layered, .page-hero.layered');
+    if (!hosts.length) return;
+    hosts.forEach(function (host) {
+      var pending = null;
+      host.addEventListener('mousemove', function (e) {
+        var ev = e;
+        if (pending) return;
+        pending = requestAnimationFrame(function () {
+          pending = null;
+          var r = host.getBoundingClientRect();
+          var nx = (ev.clientX - r.left) / Math.max(r.width, 1) - 0.5;
+          var ny = (ev.clientY - r.top) / Math.max(r.height, 1) - 0.5;
+          $$('[data-depth]', host).forEach(function (el) {
+            var depth = parseFloat(el.getAttribute('data-depth')) || 0;
+            el.style.setProperty('--mx', (nx * depth * 52).toFixed(1) + 'px');
+            el.style.setProperty('--my', (ny * depth * 36).toFixed(1) + 'px');
+          });
+        });
+      }, { passive: true });
+      host.addEventListener('mouseleave', function () {
+        $$('[data-depth]', host).forEach(function (el) {
+          el.style.setProperty('--mx', '0px');
+          el.style.setProperty('--my', '0px');
+        });
+      });
+    });
+  })();
+
+  /* ===================== BOKEH EN CANVAS (hero y banda CTA) ===================== */
+  (function initBokeh() {
+    if (prefersReduced) return;
+    var canvases = $$('canvas[data-bokeh]');
+    if (!canvases.length) return;
+    var CAP = 24;
+    canvases.forEach(function (canvas) {
+      var host = canvas.closest('.layered') || canvas.parentElement;
+      if (!host) return;
+      var ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      var dark = host.classList.contains('dark');
+      var particles = [];
+      var running = false, visible = false, raf = 0, last = 0;
+
+      function resize() {
+        var r = host.getBoundingClientRect();
+        var dpr = Math.min(window.devicePixelRatio || 1, 2);
+        var w = Math.max(1, Math.round(r.width));
+        var h = Math.max(1, Math.round(r.height));
+        canvas.width = Math.round(w * dpr);
+        canvas.height = Math.round(h * dpr);
+        canvas.style.width = w + 'px';
+        canvas.style.height = h + 'px';
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        if (!particles.length) {
+          var n = Math.min(CAP, w < 600 ? 14 : CAP);
+          for (var i = 0; i < n; i++) particles.push(spawn(w, h, true));
+        }
+      }
+      function spawn(w, h, anywhere) {
+        return {
+          x: Math.random() * w,
+          y: anywhere ? Math.random() * h : h + 10 + Math.random() * 40,
+          r: 1.2 + Math.random() * 3.2,
+          speed: 8 + Math.random() * 16,
+          drift: (Math.random() - 0.5) * 8,
+          alpha: 0.12 + Math.random() * 0.28,
+          phase: Math.random() * Math.PI * 2
+        };
+      }
+      function tick(ts) {
+        if (!running) return;
+        var w = canvas.clientWidth || 1;
+        var h = canvas.clientHeight || 1;
+        var dt = Math.min(0.05, last ? (ts - last) / 1000 : 0.016);
+        last = ts;
+        ctx.clearRect(0, 0, w, h);
+        for (var i = 0; i < particles.length; i++) {
+          var p = particles[i];
+          p.y -= p.speed * dt;
+          p.x += Math.sin((ts / 1000) + p.phase) * p.drift * dt;
+          if (p.y < -12) {
+            particles[i] = spawn(w, h, false);
+            continue;
+          }
+          var g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 3);
+          if (dark) {
+            g.addColorStop(0, 'rgba(255,255,255,' + p.alpha + ')');
+            g.addColorStop(0.45, 'rgba(127,216,230,' + (p.alpha * 0.5) + ')');
+          } else {
+            g.addColorStop(0, 'rgba(255,255,255,' + (p.alpha + 0.1) + ')');
+            g.addColorStop(0.45, 'rgba(1,147,178,' + (p.alpha * 0.45) + ')');
+          }
+          g.addColorStop(1, 'rgba(255,255,255,0)');
+          ctx.beginPath();
+          ctx.fillStyle = g;
+          ctx.arc(p.x, p.y, p.r * 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        raf = requestAnimationFrame(tick);
+      }
+      function play() {
+        if (running || !visible || document.hidden) return;
+        running = true;
+        last = 0;
+        raf = requestAnimationFrame(tick);
+      }
+      function stop() {
+        running = false;
+        if (raf) cancelAnimationFrame(raf);
+        raf = 0;
+      }
+      resize();
+      window.addEventListener('resize', resize, { passive: true });
+      document.addEventListener('visibilitychange', function () {
+        if (document.hidden) stop(); else play();
+      });
+      if ('IntersectionObserver' in window) {
+        var io = new IntersectionObserver(function (entries) {
+          visible = entries[0] && entries[0].isIntersecting;
+          if (visible) play(); else stop();
+        }, { threshold: 0.02 });
+        io.observe(host);
+      } else {
+        visible = true;
+        play();
+      }
+    });
+  })();
+
   /* ===================== AÑO DEL PIE DE PÁGINA ===================== */
   var yearEl = $('#year');
   if (yearEl) yearEl.textContent = new Date().getFullYear();
