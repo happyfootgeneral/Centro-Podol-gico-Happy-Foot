@@ -1,0 +1,44 @@
+/* Happy Foot mascot (phase 2 milestone 3 preview). Only transform/opacity animate; no filters. */
+.hfh{position:absolute;left:0;top:0;width:0;height:0;z-index:900;pointer-events:none;contain:layout style}
+.hfh *{position:absolute}
+.hfh-size{left:0;top:0;width:0;height:0;transform-origin:0 0}
+.hfh-mover,.hfh-w,.hfh-fx{left:0;top:0;width:0;height:0;will-change:transform}
+.hfh-w{transform-origin:0 0}
+.hfh-pose{left:0;top:0;opacity:0;will-change:opacity}
+.hfh-face{transform-origin:0 0}
+.hfh-pv{left:0;top:0;width:0;height:0;transform-origin:0 0;will-change:transform}
+.hfh-pv0{left:0;top:0;width:0;height:0}
+.hfh-s{background-repeat:no-repeat}
+.hfh-shadow{left:-120px;top:-16px;width:240px;height:32px;border-radius:50%;background:radial-gradient(closest-side,rgba(30,80,90,.26),rgba(30,80,90,.1) 60%,transparent)}
+.hfh-bubble{left:-210px;top:-400px;width:420px;height:420px;border-radius:50%;opacity:0;transform:scale(0);
+ background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.95) 0 6%,rgba(255,255,255,0) 9%),
+ radial-gradient(circle,rgba(255,255,255,0) 58%,rgba(190,240,232,.45) 70%,rgba(255,255,255,.9) 74%,rgba(170,220,250,.5) 77%,rgba(255,255,255,0) 80%)}
+.hfh-drop{left:-7px;top:-197px;width:14px;height:14px;border-radius:50%;background:#c9f1ea;border:2px solid #fff;opacity:0}
+.hfh-fx{top:-200px}
+.hfh-flash{left:-280px;top:-280px;width:560px;height:560px;border-radius:50%;opacity:0;transform:scale(0);
+ background:radial-gradient(closest-side,#fff 0,#fff 34%,rgba(220,252,255,.9) 52%,rgba(120,225,245,.5) 74%,rgba(120,225,245,0) 100%)}
+.hfh-ring{left:-150px;top:-150px;width:300px;height:300px;border-radius:50%;opacity:0;transform:scale(0);border:7px solid rgba(255,255,255,.95);
+ box-shadow:0 0 0 4px rgba(120,220,240,.45),inset 0 0 0 3px rgba(120,220,240,.35)}
+.hfh-sline{left:-4px;top:-52px;width:8px;height:52px;border-radius:4px;opacity:0;transform-origin:50% 100%;background:linear-gradient(rgba(60,200,225,.95),rgba(170,240,250,.6))}
+.hfh-spk{left:-20px;top:-20px;width:40px;height:40px;opacity:0;clip-path:polygon(50% 0,61% 39%,100% 50%,61% 61%,50% 100%,39% 61%,0 50%,39% 39%)}
+.hfh-spk.y{background:#ffc93a}.hfh-spk.c{background:#39cbe6}.hfh-spk.w{background:#9ff0ff}
+.hfh-q{left:40px;top:-470px;width:70px;height:90px;line-height:90px;text-align:center;font:800 88px/90px 'Fraunces',Georgia,serif;color:#0193b2;opacity:0;transform-origin:50% 100%}
+.hfh-z{left:70px;top:-330px;font:800 46px/1 'Plus Jakarta Sans',system-ui,sans-serif;color:#378fae;opacity:0}
+.hfh-z:nth-of-type(2n){font-size:38px}
+.hfh-spark{left:62px;top:-330px;width:34px;height:34px;opacity:0;color:#f4b942;font-size:34px;line-height:34px;text-align:center}
+.hfh-x{left:150px;top:-450px;color:#f29d1f}
+.hfh-ladder{left:-145px;top:0;width:290px;height:0;opacity:0;background-repeat:repeat-y;background-size:290px 52px;background-position:0 100%;transform-origin:50% 100%;will-change:transform,opacity}
+.hfh-say{left:0;top:0;white-space:nowrap;font:700 12px/1.25 'Plus Jakarta Sans',system-ui,sans-serif;color:#0a5f75;background:#fff;border:1.5px solid #bfe6ee;border-radius:14px;padding:4px 9px;
+ box-shadow:0 3px 10px rgba(1,80,100,.12);opacity:0;transform-origin:0 100%;will-change:transform,opacity}
+.hfh-say::after{content:'';left:12px;bottom:-6px;width:9px;height:9px;background:#fff;border:1.5px solid #bfe6ee;border-width:0 1.5px 1.5px 0;transform:rotate(45deg)}
+.hfh-say.r{transform-origin:100% 100%}.hfh-say.r::after{left:auto;right:12px}
+.hfh-say.c{transform-origin:50% 100%}.hfh-say.c::after{left:calc(50% - 5px)}
+@media (max-width:759px){.hfh-say{font-size:11.5px;padding:4px 8px}}
+.hfh-toggle{position:fixed;left:1.5rem;bottom:5.2rem;z-index:998;width:36px;height:36px;border-radius:50%;border:1px solid rgba(1,147,178,.18);background:#fff;color:#0193b2;
+ box-shadow:0 4px 14px rgba(11,37,50,.12);display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;opacity:.75;transition:opacity .2s}
+.hfh-toggle:hover,.hfh-toggle:focus-visible{opacity:1}
+@media (max-width:759px){.hfh-toggle{left:1rem;bottom:4.6rem;width:32px;height:32px;font-size:13px}}
+@media (prefers-reduced-motion:reduce){.hfh-bubble,.hfh-drop,.hfh-fx,.hfh-spark,.hfh-q,.hfh-z,.hfh-say,.hfh-ladder,.hfh-pbox{display:none}.hfh-pose[data-k="fw"]{opacity:1}}
+@media print{.hfh,.hfh-toggle{display:none}}
+/* v3 */
+.hfh-pbox{overflow:hidden;opacity:0;left:0;top:0;width:0;height:0}
