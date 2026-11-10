@@ -140,55 +140,133 @@
     }
   });
 
-  /* ===================== HEADER AL HACER SCROLL + VOLVER ARRIBA ===================== */
+  /* ===================== HEADER AL HACER SCROLL + VOLVER ARRIBA =====================
+     Un solo manejador pasivo, limitado a 1 vez por cuadro, que solo cambia clases
+     cuando cambia el estado (sin leer tamaños del DOM). El parallax lo hace el CSS. */
   var backToTop = $('#backToTop');
-  var ticking = false;
+  var ticking = false, wasScrolled = null, wasFar = null;
   function onScroll() {
-    var y = window.pageYOffset;
-    if (header) header.classList.toggle('scrolled', y > 24);
-    if (backToTop) backToTop.classList.toggle('visible', y > 500);
-    parallax(y);
     ticking = false;
+    var y = window.pageYOffset;
+    var s = y > 24, f = y > 500;
+    if (s !== wasScrolled && header) { header.classList.toggle('scrolled', s); wasScrolled = s; }
+    if (f !== wasFar && backToTop) { backToTop.classList.toggle('visible', f); wasFar = f; }
   }
   window.addEventListener('scroll', function () {
-    if (!ticking) { window.requestAnimationFrame(onScroll); ticking = true; }
+    if (!ticking) { ticking = true; window.requestAnimationFrame(onScroll); }
   }, { passive: true });
+  onScroll();
   if (backToTop) backToTop.addEventListener('click', function () {
     window.scrollTo({ top: 0, behavior: prefersReduced ? 'auto' : 'smooth' });
   });
 
-  /* ===================== PARALLAX (solo fondos y decoraciones) =====================
-     Se aplica únicamente a elementos con [data-depth] (manchas de color, anillos,
-     marcos decorativos). Las fotos reales y el logo nunca se mueven. */
-  var layers = prefersReduced ? [] : $$('[data-depth]');
-  function parallax(y) {
-    if (!layers.length) return;
-    var vh = window.innerHeight;
-    layers.forEach(function (el) {
-      var host = el.closest('.layered') || el.parentElement;
-      var r = host.getBoundingClientRect();
-      if (r.bottom < -200 || r.top > vh + 200) return;
-      var depth = parseFloat(el.getAttribute('data-depth')) || 0;
-      var offset = (r.top + r.height / 2 - vh / 2) * depth * -1;
-      el.style.setProperty('--py', offset.toFixed(1) + 'px');
-    });
+  /* ===================== ZONAS ANIMADAS: SOLO SE MUEVEN SI SE VEN ===================== */
+  if ('IntersectionObserver' in window) {
+    var liveIO = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { e.target.classList.toggle('live', e.isIntersecting); });
+    }, { rootMargin: '120px 0px 120px 0px' });
+    $$('.layered, .wave, .marquee, .acceso-grid').forEach(function (el) { liveIO.observe(el); });
+  } else {
+    $$('.layered, .wave, .marquee, .acceso-grid').forEach(function (el) { el.classList.add('live'); });
   }
-  onScroll();
+
+  /* ===================== TÍTULOS PALABRA POR PALABRA ===================== */
+  $$('h1.wsplit').forEach(function (h1) {
+    if (prefersReduced) { h1.classList.add('is-split'); return; }
+    var n = 0;
+    (function walk(node) {
+      Array.prototype.slice.call(node.childNodes).forEach(function (c) {
+        if (c.nodeType === 3) {
+          var parts = c.textContent.split(/(\s+)/);
+          var frag = document.createDocumentFragment();
+          parts.forEach(function (p) {
+            if (!p) return;
+            if (/^\s+$/.test(p)) { frag.appendChild(document.createTextNode(p)); return; }
+            var w = document.createElement('span');
+            w.className = 'w'; w.style.setProperty('--w', n++); w.textContent = p;
+            frag.appendChild(w);
+          });
+          node.replaceChild(frag, c);
+        } else if (c.nodeType === 1) {
+          // Los textos con degradado (.highlight / em) se animan como un bloque
+          if (c.matches('.highlight, em')) { c.classList.add('w'); c.style.setProperty('--w', n++); n += 1; }
+          else walk(c);
+        }
+      });
+    })(h1);
+    h1.classList.add('is-split');
+  });
 
   /* ===================== ANIMACIONES DE ENTRADA ESCALONADAS ===================== */
+  var RV = '.reveal, .service-card, .location-card, .blog-card, .acceso-card, .ba-card, .sede-mini, .media-frame, .results-photo, .contact-form';
   $$('.stagger').forEach(function (group) {
-    $$(':scope > .reveal', group).forEach(function (el, i) { el.style.setProperty('--d', (i * 90) + 'ms'); });
+    $$(':scope > .reveal', group).forEach(function (el, i) { el.style.setProperty('--d', (Math.min(i, 6) * 90) + 'ms'); });
   });
-  var revealEls = $$('.reveal');
+  // Tarjetas con foto en una grilla: entran una tras otra
+  $$('.service-card, .location-card, .blog-card, .acceso-card, .ba-card, .sede-mini').forEach(function (el) {
+    var sib = Array.prototype.filter.call(el.parentElement.children, function (c) { return c.matches(RV); });
+    el.style.setProperty('--d', (Math.min(sib.indexOf(el), 5) * 110) + 'ms');
+  });
+  // Tarjetas solo de texto: se inclinan con el ratón
+  $$('.symptom-card, .type-card, .why-item, .stat-item, .process-step, .testimonial-card, .sede-mini').forEach(function (el) { el.classList.add('tilt'); });
+  var revealEls = $$(RV);
+  // Las fotos que ya están en pantalla al abrir la página se muestran de inmediato (carga más rápida)
+  var vh0 = window.innerHeight;
+  revealEls = revealEls.filter(function (el) {
+    if (!el.querySelector('img') || el.getBoundingClientRect().top > vh0 * 0.9) return true;
+    el.classList.add('visible', 'no-anim');
+    return false;
+  });
+  function afterReveal(el) {
+    // Sin retraso para el hover una vez que la tarjeta ya entró
+    setTimeout(function () { el.style.setProperty('--d', '0ms'); }, 1300);
+    $$('[data-count]', el).forEach(countUp);
+    if (el.hasAttribute('data-count')) countUp(el);
+  }
   if ('IntersectionObserver' in window && !prefersReduced) {
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
-        if (entry.isIntersecting) { entry.target.classList.add('visible'); io.unobserve(entry.target); }
+        if (entry.isIntersecting) { entry.target.classList.add('visible'); io.unobserve(entry.target); afterReveal(entry.target); }
       });
-    }, { rootMargin: '0px 0px -60px 0px', threshold: 0.08 });
+    }, { rootMargin: '0px 0px -40px 0px', threshold: 0.06 });
     revealEls.forEach(function (el) { io.observe(el); });
   } else {
     revealEls.forEach(function (el) { el.classList.add('visible'); });
+  }
+
+  /* ===================== CONTADORES ===================== */
+  function countUp(el) {
+    if (el.__counted || prefersReduced) return;
+    el.__counted = true;
+    var to = parseInt(el.getAttribute('data-count'), 10), from = parseInt(el.getAttribute('data-from') || '0', 10);
+    if (isNaN(to)) return;
+    var t0 = 0, dur = 1400;
+    el.textContent = from;
+    (function step(ts) {
+      if (!t0) t0 = ts;
+      var p = Math.min(1, (ts - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(from + (to - from) * e);
+      if (p < 1) requestAnimationFrame(step);
+    })(performance.now());
+  }
+
+  /* ===================== INCLINACIÓN 3D (solo escritorio) ===================== */
+  if (!prefersReduced && window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    $$('.tilt').forEach(function (card) {
+      var pend = null, ev = null;
+      card.addEventListener('pointermove', function (e) {
+        ev = e;
+        if (pend) return;
+        pend = requestAnimationFrame(function () {
+          pend = null;
+          var r = card.getBoundingClientRect();
+          var nx = (ev.clientX - r.left) / r.width - 0.5, ny = (ev.clientY - r.top) / r.height - 0.5;
+          card.style.setProperty('--ry', (nx * 10).toFixed(2) + 'deg');
+          card.style.setProperty('--rx', (ny * -8).toFixed(2) + 'deg');
+        });
+      }, { passive: true });
+      card.addEventListener('pointerleave', function () { card.style.setProperty('--rx', '0deg'); card.style.setProperty('--ry', '0deg'); });
+    });
   }
 
   /* ===================== PREGUNTAS FRECUENTES ===================== */
@@ -301,137 +379,26 @@
     });
   }
 
-  /* ===================== PARALLAX CON EL RATÓN (escritorio) ===================== */
+  /* ===================== PARALLAX CON EL RATÓN (escritorio) =====================
+     Solo escribe dos variables en la sección; el CSS mueve cada capa según su profundidad. */
   (function initPointerParallax() {
     if (prefersReduced) return;
     var fine = window.matchMedia && window.matchMedia('(pointer: fine) and (min-width: 1024px)').matches;
     if (!fine) return;
-    var hosts = $$('.hero.layered, .cta-band.layered, .page-hero.layered');
-    if (!hosts.length) return;
-    hosts.forEach(function (host) {
-      var pending = null;
+    $$('.hero.layered, .cta-band.layered, .page-hero.layered').forEach(function (host) {
+      var pending = null, ev = null;
+      host.classList.add('mouse-px');
       host.addEventListener('mousemove', function (e) {
-        var ev = e;
+        ev = e;
         if (pending) return;
         pending = requestAnimationFrame(function () {
           pending = null;
           var r = host.getBoundingClientRect();
-          var nx = (ev.clientX - r.left) / Math.max(r.width, 1) - 0.5;
-          var ny = (ev.clientY - r.top) / Math.max(r.height, 1) - 0.5;
-          $$('[data-depth]', host).forEach(function (el) {
-            var depth = parseFloat(el.getAttribute('data-depth')) || 0;
-            el.style.setProperty('--mx', (nx * depth * 52).toFixed(1) + 'px');
-            el.style.setProperty('--my', (ny * depth * 36).toFixed(1) + 'px');
-          });
+          host.style.setProperty('--mx', ((ev.clientX - r.left) / Math.max(r.width, 1) - 0.5).toFixed(3));
+          host.style.setProperty('--my', ((ev.clientY - r.top) / Math.max(r.height, 1) - 0.5).toFixed(3));
         });
       }, { passive: true });
-      host.addEventListener('mouseleave', function () {
-        $$('[data-depth]', host).forEach(function (el) {
-          el.style.setProperty('--mx', '0px');
-          el.style.setProperty('--my', '0px');
-        });
-      });
-    });
-  })();
-
-  /* ===================== BOKEH EN CANVAS (hero y banda CTA) ===================== */
-  (function initBokeh() {
-    if (prefersReduced) return;
-    var canvases = $$('canvas[data-bokeh]');
-    if (!canvases.length) return;
-    var CAP = 24;
-    canvases.forEach(function (canvas) {
-      var host = canvas.closest('.layered') || canvas.parentElement;
-      if (!host) return;
-      var ctx = canvas.getContext('2d');
-      if (!ctx) return;
-      var dark = host.classList.contains('dark');
-      var particles = [];
-      var running = false, visible = false, raf = 0, last = 0;
-
-      function resize() {
-        var r = host.getBoundingClientRect();
-        var dpr = Math.min(window.devicePixelRatio || 1, 2);
-        var w = Math.max(1, Math.round(r.width));
-        var h = Math.max(1, Math.round(r.height));
-        canvas.width = Math.round(w * dpr);
-        canvas.height = Math.round(h * dpr);
-        canvas.style.width = w + 'px';
-        canvas.style.height = h + 'px';
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        if (!particles.length) {
-          var n = Math.min(CAP, w < 600 ? 14 : CAP);
-          for (var i = 0; i < n; i++) particles.push(spawn(w, h, true));
-        }
-      }
-      function spawn(w, h, anywhere) {
-        return {
-          x: Math.random() * w,
-          y: anywhere ? Math.random() * h : h + 10 + Math.random() * 40,
-          r: 1.2 + Math.random() * 3.2,
-          speed: 8 + Math.random() * 16,
-          drift: (Math.random() - 0.5) * 8,
-          alpha: 0.12 + Math.random() * 0.28,
-          phase: Math.random() * Math.PI * 2
-        };
-      }
-      function tick(ts) {
-        if (!running) return;
-        var w = canvas.clientWidth || 1;
-        var h = canvas.clientHeight || 1;
-        var dt = Math.min(0.05, last ? (ts - last) / 1000 : 0.016);
-        last = ts;
-        ctx.clearRect(0, 0, w, h);
-        for (var i = 0; i < particles.length; i++) {
-          var p = particles[i];
-          p.y -= p.speed * dt;
-          p.x += Math.sin((ts / 1000) + p.phase) * p.drift * dt;
-          if (p.y < -12) {
-            particles[i] = spawn(w, h, false);
-            continue;
-          }
-          var g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 3);
-          if (dark) {
-            g.addColorStop(0, 'rgba(255,255,255,' + p.alpha + ')');
-            g.addColorStop(0.45, 'rgba(127,216,230,' + (p.alpha * 0.5) + ')');
-          } else {
-            g.addColorStop(0, 'rgba(255,255,255,' + (p.alpha + 0.1) + ')');
-            g.addColorStop(0.45, 'rgba(1,147,178,' + (p.alpha * 0.45) + ')');
-          }
-          g.addColorStop(1, 'rgba(255,255,255,0)');
-          ctx.beginPath();
-          ctx.fillStyle = g;
-          ctx.arc(p.x, p.y, p.r * 3, 0, Math.PI * 2);
-          ctx.fill();
-        }
-        raf = requestAnimationFrame(tick);
-      }
-      function play() {
-        if (running || !visible || document.hidden) return;
-        running = true;
-        last = 0;
-        raf = requestAnimationFrame(tick);
-      }
-      function stop() {
-        running = false;
-        if (raf) cancelAnimationFrame(raf);
-        raf = 0;
-      }
-      resize();
-      window.addEventListener('resize', resize, { passive: true });
-      document.addEventListener('visibilitychange', function () {
-        if (document.hidden) stop(); else play();
-      });
-      if ('IntersectionObserver' in window) {
-        var io = new IntersectionObserver(function (entries) {
-          visible = entries[0] && entries[0].isIntersecting;
-          if (visible) play(); else stop();
-        }, { threshold: 0.02 });
-        io.observe(host);
-      } else {
-        visible = true;
-        play();
-      }
+      host.addEventListener('mouseleave', function () { host.style.setProperty('--mx', '0'); host.style.setProperty('--my', '0'); });
     });
   })();
 
