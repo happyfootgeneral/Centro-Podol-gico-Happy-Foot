@@ -40,6 +40,9 @@ const LS = (() => { try { return localStorage; } catch (e) { return null; } })()
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const TF = DEMO ? 0.45 : 1;
+// home page only: option B (rises from below) is the default first-impression entrance. Other pages stay unchanged.
+function isHomePage() { const leaf = (location.pathname || '').split('/').filter(Boolean).pop() || ''; return !leaf || leaf === 'index.html' || !/\.html?$/i.test(leaf); }
+function hopOpt() { return isHomePage() ? 'b' : ''; }
 const el = (tag, cls, parent, css) => { const e = document.createElement(tag); if (cls) e.className = cls; if (css) Object.assign(e.style, css); if (parent) parent.appendChild(e); return e; };
 const spr = (id, parent, cls, piv) => { const d = L[id], S = M.sections[d.sec], px = piv ? piv[0] : 0, py = piv ? piv[1] : 0;
   return el('div', 'hfh-s ' + (cls || ''), parent, { left: (d.x - px) + 'px', top: (d.y - py) + 'px', width: d.w + 'px', height: d.h + 'px',
@@ -590,9 +593,7 @@ async function computeSpotsNow() {
     for (let i = seats.length - 1; i >= 0; i--) if (seats[i].y - 380 * kk < hb) seats.splice(i, 1);
     for (let i = peeks.length - 1; i >= 0; i--) if (peeks[i].y - (peeks[i].hk || 0) < hb) peeks.splice(i, 1); }
   out.forEach((s, i) => s.key = s.kind + i + ':' + (s.el.id || txt(s.el).slice(0, 24)));
-  // live main (cc4616b): drop the mobile CTA heading spot and the desktop gap beside «Síguenos»
-  SPOTS = out.filter(s => !(isMobile() ? /^h2:Estamos listos para aten/ : /^g\d+:Síguenos/).test(s.key || ''));
-  SEATS = seats; PEEKS = peeks; spotsAt = Date.now();
+  SPOTS = out.filter(s => !(isMobile() ? /^h2:Estamos listos para aten/ : /^g\d+:Síguenos/).test(s.key || '')); SEATS = seats; PEEKS = peeks; spotsAt = Date.now();
   if (cur.visible && !cur.busy && cur.spot && cur.spot.kind !== 'seat' && blocked(figBox(cur.x, cur.y), 2, 2)) { const n = SPOTS.find(q => q.el === cur.spot.el && q.kind === cur.spot.kind) || bestSpot(); setTimeout(() => relocate(n), 0); }
    return out;
 }
@@ -773,6 +774,74 @@ async function travel(q, hopFirst) { const s = cur.spot, E = epoch; if (!q || !s
 // the hop arc must not pass through content either: sample the arc
 function hopClear(q) { const k = scaleK(), X = q.x - cur.x, Y = q.y - cur.y, h = (110 + Math.max(0, -Y / k) * 0.25) * k;
   for (let i = 1; i < 12; i++) { const u = i / 12, x = cur.x + X * u, y = cur.y + Y * u - 4 * h * u * (1 - u); if (blocked(figBox(x, y), 4, 4) || fixedHit(figBox(x, y))) return false; } return true; }
+function hopClearFrom(x0, y0, q, loose) { const k = scaleK(), X = q.x - x0, Y = q.y - y0, h = (110 + Math.max(0, -Y / k) * 0.25) * k;
+  for (let i = 1; i < 12; i++) { const u = i / 12, x = x0 + X * u, y = y0 + Y * u - 4 * h * u * (1 - u), b = figBox(x, y);
+    if (blocked(b, 4, 4)) return false; if (loose) { const top = scrollY + headerH(), bot = scrollY + innerHeight; if (b[3] < top || b[1] > bot) continue; } if (fixedHit(b)) return false; } return true; }
+function chainClear(path) { for (let i = 1; i < path.length; i++) if (!hopClearFrom(path[i - 1].x, path[i - 1].y, path[i])) return false; return true; }
+function visHome() { return SPOTS.filter(s => spotVisible(s, true) && !fixedHit(figBox(s.x, s.y))); }
+function pickHomePath(mode) {
+  const vis = visHome(); if (vis.length < 2) return null;
+  const byY = vis.slice().sort((a, b) => a.y - b.y || a.x - b.x), midX = scrollX + innerWidth / 2;
+  if (mode === 'a' || mode === 'b') {
+    let best = null; const minDy = isMobile() ? 48 : 80;
+    const consider = (p) => { if (!chainClear(p)) return; const score = (p[p.length - 1].y - p[0].y) + p.filter(s => s.hero).length * 24; if (!best || score > best.s) best = { p, s: score }; };
+    for (let i = 0; i < byY.length; i++) for (let j = i + 1; j < byY.length; j++) for (let k = j + 1; k < byY.length; k++) { const p = [byY[i], byY[j], byY[k]]; if (p[1].y - p[0].y < minDy || p[2].y - p[1].y < minDy) continue; consider(p); }
+    if (!best) for (let i = 0; i < byY.length; i++) for (let j = i + 1; j < byY.length; j++) { const p = [byY[i], byY[j]]; if (p[1].y - p[0].y < minDy) continue; consider(p); }
+    return best ? (mode === 'a' ? best.p : best.p.slice().reverse()) : null;
+  }
+  if (mode === 'c') {
+    const Lft = vis.filter(s => s.x < midX).sort((a, b) => a.y - b.y), Rgt = vis.filter(s => s.x >= midX).sort((a, b) => a.y - b.y);
+    let best = null;
+    const tryZig = (A, B) => { for (const a of A) for (const b of B) for (const c of A) { if (c === a) continue; const p = [a, b, c]; if (Math.abs(b.x - a.x) < 40 || Math.abs(c.x - b.x) < 40) continue; if (Math.hypot(b.x - a.x, b.y - a.y) < 50 || Math.hypot(c.x - b.x, c.y - b.y) < 50) continue; if (!chainClear(p)) continue; const score = Math.abs(b.x - a.x) + Math.abs(c.x - b.x) + Math.abs(c.y - a.y) * 0.4; if (!best || score > best.s) best = { p, s: score }; } };
+    tryZig(Lft, Rgt); tryZig(Rgt, Lft);
+    if (!best) for (let i = 0; i < vis.length; i++) for (let j = 0; j < vis.length; j++) if (i !== j) { const p = [vis[i], vis[j]]; if (Math.abs(p[1].x - p[0].x) < 30 || Math.hypot(p[1].x - p[0].x, p[1].y - p[0].y) < 70) continue; if (!chainClear(p)) continue; const score = Math.abs(p[1].x - p[0].x) + Math.abs(p[1].y - p[0].y) * 0.5; if (!best || score > best.s) best = { p, s: score }; }
+    // narrow screens: title spots sit on one side, so use the highest-to-lowest clear chain and enter from the other side
+    if (!best && byY.length >= 2) { for (let i = 0; i < byY.length && !best; i++) for (let j = byY.length - 1; j > i; j--) { const p = [byY[i], byY[j]]; if (chainClear(p)) { best = { p, s: p[1].y - p[0].y }; break; } } }
+    return best ? best.p : null;
+  }
+  if (mode === 'd') {
+    let best = null;
+    for (const pool of [vis.filter(s => s.hero), vis]) {
+      for (let i = 0; i < pool.length; i++) for (let j = 0; j < pool.length; j++) if (i !== j) { const a = pool[i], b = pool[j], dx = Math.abs(b.x - a.x), dy = Math.abs(b.y - a.y); if (dx < (isMobile() ? 50 : 160)) continue; if (!hopClearFrom(a.x, a.y, b)) continue; const score = dx - dy * 0.35 + (a.hero && b.hero ? 40 : 0); if (!best || score > best.s) best = { p: [a, b], s: score }; }
+      if (best) break;
+    }
+    // phone: no wide standing pair (buttons fill the width). One landing on the heading, the leap comes from off-screen.
+    if (!best && vis.length) { const pool = vis.filter(s => s.hero); const land = (pool.length ? pool : vis).slice().sort((a, b) => b.y - a.y || b.x - a.x)[0]; best = { p: [land], s: 1 }; }
+    return best ? best.p : null;
+  }
+  return null;
+}
+async function greetHome() { ACT.say(hello(), 1900, '¡Hola!'); if (P.yintro1 && await ACT.seq(['yintro1', 'yintro2', 'yintro3', 'yintro4'], 1, 280)) return; await ACT.talkWave(1600); }
+function findSideStart(target, fromLeft) {
+  const xs = fromLeft ? [scrollX - 52, scrollX - 18, scrollX + 10] : [scrollX + innerWidth + 52, scrollX + innerWidth + 18, scrollX + innerWidth - 10];
+  const ys = [target.y - 100, target.y - 60, target.y - 24, target.y, scrollY + headerH() + 88, target.y + 24];
+  for (const y of ys) for (const x of xs) if (hopClearFrom(x, y, target, true)) return { x, y };
+  return { x: fromLeft ? scrollX - 52 : scrollX + innerWidth + 52, y: target.y - 80 };
+}
+async function runHomeHop(mode) {
+  const path = pickHomePath(mode);
+  
+  if (!path) return false;
+  const first = path[0], spanX = Math.max(...path.map(s => s.x)) - Math.min(...path.map(s => s.x));
+  let sx = first.x, sy = first.y, looseIn = false, sideIn = false;
+  if (mode === 'a') { sy = first.y - (isMobile() ? 280 : 320); looseIn = true; }
+  else if (mode === 'b') { sy = Math.max(first.y + (isMobile() ? 260 : 300), scrollY + innerHeight + 28); looseIn = true; }
+  else if (mode === 'c') {
+    const fromLeft = spanX < (isMobile() ? 80 : 120) ? first.x >= scrollX + innerWidth / 2 : first.x >= scrollX + innerWidth / 2;
+    const st = findSideStart(first, fromLeft); sx = st.x; sy = st.y; looseIn = true; sideIn = true;
+  } else if (mode === 'd' && (path.length < 2 || spanX < (isMobile() ? 80 : 160))) {
+    const fromLeft = first.x >= scrollX + innerWidth / 2; const st = findSideStart(first, fromLeft); sx = st.x; sy = st.y; looseIn = true; sideIn = true;
+  }
+  epoch++; mover.style.transform = ''; ladder.style.opacity = 0; pbox.style.opacity = 0; if (cur.seated) leaveSeat();
+  place(sx, sy); cur.visible = true; cur.spot = first; root.style.visibility = 'visible'; setPose('fw'); setArm('3'); if (window.__hfLazy) window.__hfLazy();
+  if (mode === 'd' && !sideIn) { place(first.x, first.y); await clip(220, tl => tl(pop, squashF(40, .5))); await sleep(160); }
+  else if (Math.hypot(first.x - cur.x, first.y - cur.y) > 12) {
+    if (hopClearFrom(cur.x, cur.y, first, looseIn) || looseIn) await ACT.hopTo(first.x - cur.x, first.y - cur.y); else { await showAt(first, 'still'); }
+  } else await clip(200, tl => tl(pop, squashF(40, .4)));
+  if (!cur.visible) return false; cur.spot = first; place(first.x, first.y); await sleep(180);
+  for (let i = 1; i < path.length; i++) { const q = path[i], px = cur.x, py = cur.y; if (!hopClearFrom(cur.x, cur.y, q) && Math.hypot(q.x - cur.x, q.y - cur.y) > 640) continue; cur.spot = q; const ok = await ACT.hopTo(q.x - cur.x, q.y - cur.y); if (!ok) place(q.x, q.y); lastMove = [Math.sign(q.x - px), Math.sign(q.y - py)]; if (typeof remember === 'function') remember(q); await sleep(220); }
+  await greetHome(); cur.arrivedAt = Date.now(); cur.dwell = rnd(1800, 2600); save(); return true;
+}
 
 // ---- context: he reacts to what he is next to (heading, button, card, photo, trust item, social icons, footer)
 const has = (s, re) => re.test((s || '').toLowerCase());
@@ -1077,7 +1146,14 @@ async function boot() {
     s0 = vis[0] || null; if (s0 && px != null) startX = Math.max(s0.lo, Math.min(s0.hi, px)); }
   if (!s0) s0 = SPOTS.find(s => s.hero && spotVisible(s)) || bestSpot();
   if (returning) { cur.sitting = false; }
-  if (s0) { cur.busy = true;
+  const hopM = !reduce && !returning && hopOpt();
+  if (hopM) { cur.busy = true;
+    if (M.sections.y1) { keep.push(...await decode(['y1'])); buildLazy('y1'); }
+    if (M.sections.y2) { keep.push(...await decode(['y2'])); buildLazy('y2'); }
+    const ok = await runHomeHop(hopM);
+    if (!ok && s0) { await showAt(s0, 'entrance'); await arrive(s0); }
+    cur.busy = false; }
+  else if (s0) { cur.busy = true;
     if (returning && startX != null && Math.abs(startX - s0.x) > 30) { const tgt = s0; await showAt(Object.assign({}, s0, { x: startX }), 'still'); cur.spot = tgt;
       afterWalk = () => busyRun(async () => { if (cur.spot === tgt && cur.visible && !cur.seated) { await ACT.walkBy(tgt.x - cur.x); await arrive(tgt); } }); }
     else { await showAt(s0, returning ? 'quiet' : 'entrance'); await arrive(s0); }
@@ -1087,7 +1163,6 @@ async function boot() {
     const again = async () => { await computeSpots(); const s = bestSpot(); if (s && !cur.visible && !userOff) { await busyRun(async () => { await showAt(s, 'poof'); await arrive(s); }); return; } await fallbackVisit(false); };
     setTimeout(again, 700); setTimeout(again, 1800);
   }
-  
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 })();
